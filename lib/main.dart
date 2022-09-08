@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:block_practice/bloc/bloc_actions.dart';
+import 'package:block_practice/bloc/person.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,55 +36,6 @@ class MyApp extends StatelessWidget {
       // const MyHomePage(),
     );
   }
-}
-
-@immutable
-abstract class LoadAction {
-  const LoadAction();
-}
-
-@immutable
-class LoadPersonsAction implements LoadAction {
-  final PersonUrl url;
-
-  const LoadPersonsAction({
-    required this.url,
-  }) : super();
-}
-
-enum PersonUrl {
-  persons1,
-  persons2,
-}
-
-extension UrlString on PersonUrl {
-  String get urlString {
-    switch (this) {
-      case PersonUrl.persons1:
-        return 'http://10.0.2.2:5500/api/persons1.json';
-      case PersonUrl.persons2:
-        return 'http://10.0.2.2:5500/api/persons2.json';
-    }
-  }
-}
-
-@immutable
-class Person {
-  final String name;
-  final int age;
-
-  // not used
-  const Person({
-    required this.name,
-    required this.age,
-  });
-
-  Person.fromJson(Map<String, dynamic> json)
-      : name = json['name'] as String,
-        age = json['age'] as int;
-
-  @override
-  String toString() => 'Person(name: $name, age: $age)';
 }
 
 Future<Iterable<Person>> getPersons(String url) => HttpClient()
@@ -158,7 +111,7 @@ class MyHomePage extends StatelessWidget {
                         ),
                       );
                 },
-                child: const Text("Load json #1"),
+                child: const Text('Load json #1'),
               ),
               TextButton(
                 onPressed: () {
@@ -168,7 +121,7 @@ class MyHomePage extends StatelessWidget {
                         ),
                       );
                 },
-                child: const Text("Load json #2"),
+                child: const Text('Load json #2'),
               ),
             ],
           ),
@@ -179,7 +132,7 @@ class MyHomePage extends StatelessWidget {
                 fetchResult?.log();
                 final persons = fetchResult?.persons;
                 if (persons == null) {
-                  return const Text("Loading...");
+                  return const Text('Loading...');
                 }
                 return ListView.builder(
                   itemCount: persons.length,
