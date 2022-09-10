@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:block_practice/bloc/bloc_actions.dart';
 import 'package:block_practice/bloc/person.dart';
+import 'package:block_practice/bloc/persons_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'dart:developer' as devtools show log;
@@ -45,47 +45,6 @@ Future<Iterable<Person>> getPersons(String url) => HttpClient()
     .then((str) => json.decode(str) as List<dynamic>)
     .then((list) => list.map((item) => Person.fromJson(item)));
 
-@immutable
-class FetchResult {
-  final Iterable<Person> persons;
-  final bool isRetrieveFromCache;
-
-  const FetchResult({
-    required this.persons,
-    required this.isRetrieveFromCache,
-  });
-
-  @override
-  String toString() => 'FetchResult { persons: $persons, isRetrieveFromCache: $isRetrieveFromCache }';
-}
-
-class PersonsBloc extends Bloc<LoadAction, FetchResult?> {
-  final Map<PersonUrl, Iterable<Person>> _cache = {};
-  PersonsBloc() : super(null) {
-    on<LoadPersonsAction>(
-      (event, emit) async {
-        final url = event.url;
-        if (_cache.containsKey(url)) {
-          final cachedPersons = _cache[url]!;
-          final result = FetchResult(
-            persons: cachedPersons,
-            isRetrieveFromCache: true,
-          );
-          emit(result);
-        } else {
-          final persons = await getPersons(url.urlString);
-          _cache[url] = persons;
-          final result = FetchResult(
-            persons: persons,
-            isRetrieveFromCache: false,
-          );
-          emit(result);
-        }
-      },
-    );
-  }
-}
-
 extension Subscript<T> on Iterable<T> {
   T? operator [](int index) => length > index ? elementAt(index) : null;
 }
@@ -107,7 +66,8 @@ class MyHomePage extends StatelessWidget {
                 onPressed: () {
                   context.read<PersonsBloc>().add(
                         const LoadPersonsAction(
-                          url: PersonUrl.persons1,
+                          url: persons1Url,
+                          loader: getPersons,
                         ),
                       );
                 },
@@ -117,7 +77,8 @@ class MyHomePage extends StatelessWidget {
                 onPressed: () {
                   context.read<PersonsBloc>().add(
                         const LoadPersonsAction(
-                          url: PersonUrl.persons2,
+                          url: persons2Url,
+                          loader: getPersons,
                         ),
                       );
                 },
