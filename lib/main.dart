@@ -1,9 +1,14 @@
 import 'package:block_practice/apis/login_api.dart';
 import 'package:block_practice/apis/notes_api.dart';
+import 'package:block_practice/bloc/actions.dart';
 import 'package:block_practice/bloc/app_bloc.dart';
 import 'package:block_practice/bloc/app_state.dart';
+import 'package:block_practice/dialogs/generic_dialog.dart';
 import 'package:block_practice/dialogs/loading_screen.dart';
+import 'package:block_practice/models.dart';
 import 'package:block_practice/strings.dart';
+import 'package:block_practice/views/iterable_list_view.dart';
+import 'package:block_practice/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -51,9 +56,37 @@ class MyHomePage extends StatelessWidget {
             } else {
               LoadingScreen.instance().hide();
             }
+            final loginError = appState.loginError;
+            if (loginError != null) {
+              showGenericDialog(
+                context: context,
+                title: loginErrorDialogTitle,
+                content: loginErrorDialogContent,
+                optionBuilder: () => {ok: true},
+              );
+            }
+
+            // if we are logged in, but we have no fetched notes, fetch them now
+            if (appState.isLoading == false && appState.loginError == null && appState.loginHandle == const LoginHandle.fooBar() && appState.fetchedNotes == null) {
+              context.read<AppBloc>().add(const LoadNotesAction());
+            }
           },
           builder: (context, appState) {
-            return Container();
+            final notes = appState.fetchedNotes;
+            if (notes == null) {
+              return LoginView(
+                onLoginTapped: (email, password) {
+                  context.read<AppBloc>().add(
+                        LoginAction(
+                          email: email,
+                          password: password,
+                        ),
+                      );
+                },
+              );
+            } else {
+              return notes.toListView();
+            }
           },
         ),
       ),
